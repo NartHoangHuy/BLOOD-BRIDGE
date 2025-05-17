@@ -1,0 +1,23 @@
+.about-section {
+  background-color: #FCFCFC; /* Lotion */
+  color: #070603; /* Vampire Black */
+  padding: 4rem 0;
+  text-align: center;
+}
+
+.about-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.about-section h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #A41214; /* Animal Blood */
+}
+
+.about-section p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #333;
+}
