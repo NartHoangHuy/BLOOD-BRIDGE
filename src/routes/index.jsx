@@ -10,6 +10,7 @@ import UserProfile from '../pages/UserProfile';
 import Contact from '../pages/Contact';
 import About from '../pages/About';
 
+
 const AppRoutes = () => (
   <Routes>
     <Route path="/" element={<Home />} />
@@ -21,6 +22,7 @@ const AppRoutes = () => (
     <Route path="/profile" element={<UserProfile />} />
     <Route path="/contact" element={<Contact />} />
     <Route path="/about" element={<About />} />
+    <Route path="/donor-profile" element={<DonorProfile />} />
   </Routes>
 );
 

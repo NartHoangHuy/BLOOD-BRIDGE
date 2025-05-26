@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './Auth.css';
 import { TextField, Button, Typography, Stack, Divider } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [form, setForm] = useState({
@@ -9,41 +10,60 @@ const Login = () => {
     MatKhau: ''
   });
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // 🔥 Gửi yêu cầu đăng nhập
+  const loginUser = async () => {
+    const response = await fetch('http://localhost:5000/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        TenDangNhap: form.TenDangNhap,
+        MatKhau: form.MatKhau
+      })
+    });
+    return response.json();
+  };
+
+  // 🔥 Kiểm tra hồ sơ tài khoản
+  const checkUserProfile = async (userId) => {
+    const token = localStorage.getItem('token'); // ✅ Lấy token từ localStorage
+    const response = await fetch(`http://localhost:5000/api/profile/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.json();
+  };
+
+  // 🔥 Xử lý đăng nhập
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 7000); // 7s timeout
+    const timeout = setTimeout(() => controller.abort(), 7000);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          TenDangNhap: form.TenDangNhap,
-          MatKhau: form.MatKhau
-        }),
-        signal: controller.signal
-      });
+      // 1️⃣ Gửi yêu cầu đăng nhập
+      const data = await loginUser();
 
-      clearTimeout(timeout);
-
-      const data = await response.json();
-
-      if (response.ok) {
+      if (data && data.token) {
         alert('Đăng nhập thành công!');
-        // TODO: Lưu token vào localStorage nếu cần:
-        localStorage.setItem('token', data.token);
-        // Chuyển hướng trang chính:
-        window.location.href = '/DonorProfile';
+        localStorage.setItem('token', data.token); // ✅ Lưu token
+
+        // 2️⃣ Gửi yêu cầu kiểm tra hồ sơ
+        const profileData = await checkUserProfile(data.userId);
+
+        if (profileData.hasProfile) {
+          navigate('/'); // Nếu đã có hồ sơ → về trang chủ
+        } else {
+          navigate('/donor-profile'); // Nếu chưa có hồ sơ → sang trang cập nhật
+        }
       } else {
-        alert(`Lỗi: ${data.message}`);
+        alert(`Lỗi: ${data.message || 'Không xác định'}`);
       }
     } catch (error) {
       if (error.name === 'AbortError') {
@@ -53,6 +73,7 @@ const Login = () => {
         alert('Lỗi kết nối server');
       }
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   };

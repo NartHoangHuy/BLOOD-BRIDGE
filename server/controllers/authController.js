@@ -2,9 +2,8 @@ const pool = require('../db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+// Đăng ký tài khoản
 async function register(req, res) {
-  console.log('Body nhận được:', req.body); // 🔍 Kiểm tra body
-
   const { TenDangNhap, Email, MatKhau } = req.body;
 
   if (!TenDangNhap || !Email || !MatKhau) {
@@ -12,6 +11,7 @@ async function register(req, res) {
   }
 
   try {
+    // Kiểm tra tên đăng nhập hoặc email đã tồn tại chưa
     const [existing] = await pool.query(
       'SELECT * FROM TAIKHOAN WHERE TenDangNhap = ? OR Email = ?',
       [TenDangNhap, Email]
@@ -21,8 +21,10 @@ async function register(req, res) {
       return res.status(400).json({ message: 'Tên đăng nhập hoặc email đã tồn tại' });
     }
 
+    // Mã hóa mật khẩu
     const hashedPassword = await bcrypt.hash(MatKhau, 10);
 
+    // Lưu tài khoản mới
     const [result] = await pool.query(
       'INSERT INTO TAIKHOAN (TenDangNhap, MatKhau, Email, LoaiTaiKhoan, ThoiGianDangKy) VALUES (?, ?, ?, ?, NOW())',
       [TenDangNhap, hashedPassword, Email, 'User']
@@ -30,14 +32,13 @@ async function register(req, res) {
 
     return res.status(201).json({ message: 'Đăng ký thành công', userId: result.insertId });
   } catch (error) {
-    console.error(error);
+    console.error('Lỗi trong register:', error);
     return res.status(500).json({ message: 'Lỗi server' });
   }
 }
 
+// Đăng nhập
 async function login(req, res) {
-  console.log('Body nhận được:', req.body); // 🔍 Kiểm tra body
-
   const { TenDangNhap, MatKhau } = req.body;
 
   if (!TenDangNhap || !MatKhau) {
@@ -45,6 +46,7 @@ async function login(req, res) {
   }
 
   try {
+    // Tìm tài khoản
     const [users] = await pool.query(
       'SELECT * FROM TAIKHOAN WHERE TenDangNhap = ?',
       [TenDangNhap]
@@ -55,12 +57,14 @@ async function login(req, res) {
     }
 
     const user = users[0];
-    const isMatch = await bcrypt.compare(MatKhau, user.MatKhau);
 
+    // So sánh mật khẩu
+    const isMatch = await bcrypt.compare(MatKhau, user.MatKhau);
     if (!isMatch) {
       return res.status(401).json({ message: 'Mật khẩu không đúng' });
     }
 
+    // Tạo token
     const token = jwt.sign(
       { userId: user.MaTaiKhoan, role: user.LoaiTaiKhoan },
       process.env.JWT_SECRET || 'your_jwt_secret_key',
@@ -74,9 +78,33 @@ async function login(req, res) {
       token
     });
   } catch (error) {
-    console.error(error);
+    console.error('Lỗi trong login:', error);
     return res.status(500).json({ message: 'Lỗi server' });
   }
 }
 
-module.exports = { register, login };
+// Kiểm tra hồ sơ tài khoản (DonorProfile)
+async function checkProfile(req, res) {
+  const userId = req.params.userId;
+
+  try {
+    const [rows] = await pool.query(
+      `SELECT h.*
+       FROM hosotaikhoan h
+       JOIN taikhoan t ON h.MaTaiKhoan = t.MaTaiKhoan
+       WHERE t.MaTaiKhoan = ?`,
+      [userId]
+    );
+
+    if (rows.length > 0) {
+      return res.json({ hasProfile: true, profile: rows[0] });
+    } else {
+      return res.json({ hasProfile: false });
+    }
+  } catch (error) {
+    console.error('Lỗi trong checkProfile:', error);
+    return res.status(500).json({ message: 'Lỗi server' });
+  }
+}
+
+module.exports = { register, login, checkProfile };

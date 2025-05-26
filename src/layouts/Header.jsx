@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Container from '@mui/material/Container';
-
+import { logout } from '../utils/AuthUtils';
 const Header = () => {
   return (
     <AppBar position="static" color="error" elevation={2}>
@@ -22,6 +22,7 @@ const Header = () => {
             <Button component={Link} to="/login" color="inherit">Đăng nhập</Button>
             <Button component={Link} to="/about" color="inherit">Giới thiệu</Button>
             <Button component={Link} to="/contact" color="inherit">Liên hệ</Button>
+            <Button onClick={logout} color="inherit" >Đăng xuất</Button>
           </Stack>
         </Toolbar>
       </Container>
