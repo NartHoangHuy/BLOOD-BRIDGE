@@ -1,7 +1,6 @@
-// src/pages/DonorProfile.jsx
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Box, Button, TextField, Typography, Paper, MenuItem } from '@mui/material';
-import axios from 'axios'; // 🟩 Dùng axios thay fetch
+import axios from 'axios';
 import './DonorProfile.css';
 
 const DonorProfile = () => {
@@ -14,45 +13,61 @@ const DonorProfile = () => {
     NgaySinh: '',
     GioiTinh: 1,
     SDT: '',
-    MaTaiKhoan: 1 // 👉 TODO: Lấy từ AuthContext hoặc localStorage
+    MaTaiKhoan: ''
   });
 
   const [imagePreview, setImagePreview] = useState(null);
   const [linkFileName, setLinkFileName] = useState('');
 
-  // 👉 Thêm useEffect để load dữ liệu ban đầu
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const response = await axios.get(`http://localhost:5000/api/profile/${formData.MaTaiKhoan}`, {
-          withCredentials: true
-        });
-        if (response.data.hasProfile) {
-          setFormData((prev) => ({
-            ...prev,
-            ...response.data.profile
-          }));
-          if (response.data.profile.HinhAnh) {
-            setImagePreview(`http://localhost:5000/uploads/${response.data.profile.HinhAnh}`);
-          }
-          if (response.data.profile.LinkThongTin) {
-            setLinkFileName(response.data.profile.LinkThongTin);
-          }
-        }
-      } catch (error) {
-        console.error('❌ Lỗi khi tải profile:', error);
-      }
-    };
-    fetchProfile();
-  }, [formData.MaTaiKhoan]); // 🔥 Sẽ chạy khi MaTaiKhoan thay đổi
+  const formatDateForMySQL = (isoDate) => {
+    if (!isoDate) return '';
+    return isoDate.split('T')[0];
+  };
 
-  // 🟩 Xử lý thay đổi textfield
+  useEffect(() => {
+    const userId = localStorage.getItem('userId');
+    if (userId) {
+      setFormData((prev) => ({
+        ...prev,
+        MaTaiKhoan: userId
+      }));
+
+      const fetchProfile = async () => {
+        try {
+          const response = await axios.get(`http://localhost:5000/api/profile/${userId}`, {
+            withCredentials: true
+          });
+          if (response.data.hasProfile) {
+            // ✅ Đã có hồ sơ ➜ load dữ liệu lên form
+            setFormData((prev) => ({
+              ...prev,
+              ...response.data.profile
+            }));
+            if (response.data.profile.HinhAnh) {
+              setImagePreview(`http://localhost:5000/uploads/${response.data.profile.HinhAnh}`);
+            }
+            if (response.data.profile.LinkThongTin) {
+              setLinkFileName(response.data.profile.LinkThongTin);
+            }
+          } else {
+            console.log('Chưa có hồ sơ ➜ Tạo mới');
+          }
+        } catch (error) {
+          console.error('❌ Lỗi khi tải profile:', error);
+        }
+      };
+
+      fetchProfile();
+    } else {
+      window.location.href = '/login';
+    }
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 🟩 Hiển thị preview hình ảnh
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -60,7 +75,6 @@ const DonorProfile = () => {
     }
   };
 
-  // 🟩 Lấy tên file Link
   const handleLinkFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -76,46 +90,47 @@ const DonorProfile = () => {
     linkFileInputRef.current.click();
   };
 
-  // 🟩 Gửi dữ liệu
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  const data = new FormData();
-  data.append('MaTaiKhoan', formData.MaTaiKhoan);
-  data.append('Ho', formData.Ho);
-  data.append('Ten', formData.Ten);
-  data.append('NgaySinh', formData.NgaySinh);
-  data.append('GioiTinh', parseInt(formData.GioiTinh, 10));
-  data.append('SDT', formData.SDT);
+    e.preventDefault();
 
-  if (imageInputRef.current.files[0]) {
-    data.append('Image', imageInputRef.current.files[0]);
-  }
-  if (linkFileInputRef.current.files[0]) {
-    data.append('LinkFile', linkFileInputRef.current.files[0]);
-  }
+    if (!formData.MaTaiKhoan) {
+      alert('Lỗi: MaTaiKhoan không tồn tại!');
+      return;
+    }
 
-  console.log('🟢 FormData:', data); // Bạn sẽ không thể in toàn bộ FormData, nhưng có thể in keys
-  for (let pair of data.entries()) {
-  console.log(pair[0]+ ', ' + pair[1]);
-  }
+    console.log('🟢 Dữ liệu chuẩn bị gửi:', formData);
 
-  try {
-    const response = await axios.post(
-      'http://localhost:5000/api/profile/save',
-      data,
-      { withCredentials: true }
-    );
-    alert(response.data.message || 'Cập nhật thành công!');
-  } catch (error) {
-    console.error('❌ Lỗi khi gửi request:', error);
-    alert(error.response?.data?.message || 'Lỗi kết nối server!');
-  }
-};
+    const data = new FormData();
+    data.append('MaTaiKhoan', formData.MaTaiKhoan);
+    data.append('Ho', formData.Ho);
+    data.append('Ten', formData.Ten);
+    data.append('NgaySinh', formatDateForMySQL(formData.NgaySinh));
+    data.append('GioiTinh', parseInt(formData.GioiTinh, 10));
+    data.append('SDT', formData.SDT);
+
+    if (imageInputRef.current.files[0]) {
+      data.append('Image', imageInputRef.current.files[0]);
+    }
+    if (linkFileInputRef.current.files[0]) {
+      data.append('LinkFile', linkFileInputRef.current.files[0]);
+    }
+
+    try {
+      const response = await axios.post('http://localhost:5000/api/profile/save', data, {
+        withCredentials: true
+      });
+      alert(response.data.message || 'Cập nhật thành công!');
+      window.location.href = '/';
+    } catch (error) {
+      console.error('❌ Lỗi khi gửi request:', error);
+      alert(error.response?.data?.message || 'Lỗi kết nối server!');
+    }
+  };
 
   return (
     <Box className="donor-profile-page">
       <Paper elevation={3} className="donor-profile-card">
-        {/* 🟩 Khu vực hình ảnh */}
+        {/* Ảnh preview */}
         <Box className="donor-profile-image-box">
           <Box
             sx={{
@@ -151,7 +166,7 @@ const DonorProfile = () => {
           </Button>
         </Box>
 
-        {/* 🟩 Khu vực thông tin */}
+        {/* Form thông tin */}
         <Box component="form" onSubmit={handleSubmit} className="donor-profile-info">
           <TextField
             label="Họ"
@@ -173,7 +188,7 @@ const DonorProfile = () => {
             label="Ngày Sinh"
             name="NgaySinh"
             type="date"
-            value={formData.NgaySinh}
+            value={formatDateForMySQL(formData.NgaySinh)}
             onChange={handleChange}
             size="small"
             InputLabelProps={{ shrink: true }}

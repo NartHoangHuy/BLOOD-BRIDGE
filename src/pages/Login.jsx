@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import './Auth.css';
 import { TextField, Button, Typography, Stack, Divider } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
-import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [form, setForm] = useState({
@@ -10,13 +9,11 @@ const Login = () => {
     MatKhau: ''
   });
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // 🔥 Gửi yêu cầu đăng nhập
   const loginUser = async () => {
     const response = await fetch('http://localhost:5000/api/auth/login', {
       method: 'POST',
@@ -29,51 +26,47 @@ const Login = () => {
     return response.json();
   };
 
-  // 🔥 Kiểm tra hồ sơ tài khoản
-  const checkUserProfile = async (userId) => {
-    const token = localStorage.getItem('token'); // ✅ Lấy token từ localStorage
-    const response = await fetch(`http://localhost:5000/api/profile/${userId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+  // 🔥 Lấy họ tên từ hosotaikhoan
+  const getProfileInfo = async (userId) => {
+    const response = await fetch(`http://localhost:5000/api/profile/${userId}`);
     return response.json();
   };
 
-  // 🔥 Xử lý đăng nhập
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 7000);
-
     try {
-      // 1️⃣ Gửi yêu cầu đăng nhập
       const data = await loginUser();
 
-      if (data && data.token) {
-        alert('Đăng nhập thành công!');
-        localStorage.setItem('token', data.token); // ✅ Lưu token
+      if (data && data.token && data.userId) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('userId', data.userId);
 
-        // 2️⃣ Gửi yêu cầu kiểm tra hồ sơ
-        const profileData = await checkUserProfile(data.userId);
-
+        // 🔥 Lấy họ tên thực tế từ bảng hosotaikhoan
+        const profileData = await getProfileInfo(data.userId);
         if (profileData.hasProfile) {
-          navigate('/'); // Nếu đã có hồ sơ → về trang chủ
+          const { Ho, Ten } = profileData.profile;
+          const fullName = `${Ho} ${Ten}`;
+          localStorage.setItem('userName', fullName);
         } else {
-          navigate('/donor-profile'); // Nếu chưa có hồ sơ → sang trang cập nhật
+          // fallback nếu chưa có hồ sơ
+          localStorage.setItem('userName', data.fullName || 'Người dùng');
+        }
+
+        alert('Đăng nhập thành công!');
+        if (profileData.hasProfile) {
+          window.location.href = '/';
+        } else {
+          window.location.href = '/donor-profile';
         }
       } else {
         alert(`Lỗi: ${data.message || 'Không xác định'}`);
       }
     } catch (error) {
-      if (error.name === 'AbortError') {
-        alert('Kết nối server quá lâu, vui lòng thử lại!');
-      } else {
-        console.error(error);
-        alert('Lỗi kết nối server');
-      }
+      console.error(error);
+      alert('Lỗi kết nối server');
     } finally {
-      clearTimeout(timeout);
       setLoading(false);
     }
   };
