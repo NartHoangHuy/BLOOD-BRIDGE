@@ -21,18 +21,22 @@ async function register(req, res) {
       return res.status(400).json({ message: 'Tên đăng nhập hoặc email đã tồn tại' });
     }
 
-    // Mã hóa mật khẩu
+    // Mã hoá mật khẩu
     const hashedPassword = await bcrypt.hash(MatKhau, 10);
 
-    // Lưu tài khoản mới
+    // Lưu tài khoản mới (mặc định: User)
     const [result] = await pool.query(
       'INSERT INTO TAIKHOAN (TenDangNhap, MatKhau, Email, LoaiTaiKhoan, ThoiGianDangKy) VALUES (?, ?, ?, ?, NOW())',
       [TenDangNhap, hashedPassword, Email, 'User']
     );
 
-    return res.status(201).json({ message: 'Đăng ký thành công', userId: result.insertId });
+    return res.status(201).json({
+      message: 'Đăng ký thành công',
+      userId: result.insertId,
+      role: 'User'
+    });
   } catch (error) {
-    console.error('Lỗi trong register:', error);
+    console.error('❌ Lỗi trong register:', error);
     return res.status(500).json({ message: 'Lỗi server' });
   }
 }
@@ -57,16 +61,26 @@ async function login(req, res) {
     }
 
     const user = users[0];
-
-    // So sánh mật khẩu
     const isMatch = await bcrypt.compare(MatKhau, user.MatKhau);
+
     if (!isMatch) {
       return res.status(401).json({ message: 'Mật khẩu không đúng' });
     }
 
+    // Lấy thông tin họ tên từ HOSOTAIKHOAN (nếu có)
+    const [profiles] = await pool.query(
+      'SELECT Ho, Ten FROM HOSOTAIKHOAN WHERE MaTaiKhoan = ?',
+      [user.MaTaiKhoan]
+    );
+
+    let fullName = 'Người dùng';
+    if (profiles.length > 0) {
+      fullName = `${profiles[0].Ho} ${profiles[0].Ten}`.trim();
+    }
+
     // Tạo token
     const token = jwt.sign(
-      { userId: user.MaTaiKhoan, role: user.LoaiTaiKhoan },
+      { MaTaiKhoan: user.MaTaiKhoan, LoaiTaiKhoan: user.LoaiTaiKhoan },
       process.env.JWT_SECRET || 'your_jwt_secret_key',
       { expiresIn: '1d' }
     );
@@ -75,10 +89,11 @@ async function login(req, res) {
       message: 'Đăng nhập thành công',
       userId: user.MaTaiKhoan,
       role: user.LoaiTaiKhoan,
+      fullName,  // ✅ Thêm tên người dùng
       token
     });
   } catch (error) {
-    console.error('Lỗi trong login:', error);
+    console.error('❌ Lỗi trong login:', error);
     return res.status(500).json({ message: 'Lỗi server' });
   }
 }
@@ -89,8 +104,7 @@ async function checkProfile(req, res) {
 
   try {
     const [rows] = await pool.query(
-      `SELECT h.*
-       FROM hosotaikhoan h
+      `SELECT h.* FROM hosotaikhoan h
        JOIN taikhoan t ON h.MaTaiKhoan = t.MaTaiKhoan
        WHERE t.MaTaiKhoan = ?`,
       [userId]
@@ -102,7 +116,7 @@ async function checkProfile(req, res) {
       return res.json({ hasProfile: false });
     }
   } catch (error) {
-    console.error('Lỗi trong checkProfile:', error);
+    console.error('❌ Lỗi trong checkProfile:', error);
     return res.status(500).json({ message: 'Lỗi server' });
   }
 }

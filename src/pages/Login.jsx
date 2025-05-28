@@ -18,17 +18,13 @@ const Login = () => {
     const response = await fetch('http://localhost:5000/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        TenDangNhap: form.TenDangNhap,
-        MatKhau: form.MatKhau
-      })
+      body: JSON.stringify(form)
     });
     return response.json();
   };
 
-  // 🔥 Lấy họ tên từ hosotaikhoan
   const getProfileInfo = async (userId) => {
-    const response = await fetch(`http://localhost:5000/api/profile/${userId}`);
+    const response = await fetch(`http://localhost:5000/api/auth/profile/${userId}`);
     return response.json();
   };
 
@@ -42,20 +38,25 @@ const Login = () => {
       if (data && data.token && data.userId) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('userId', data.userId);
+        localStorage.setItem('role', data.role);
 
-        // 🔥 Lấy họ tên thực tế từ bảng hosotaikhoan
+        // 🔥 Lấy tên đầy đủ (nếu có)
         const profileData = await getProfileInfo(data.userId);
         if (profileData.hasProfile) {
           const { Ho, Ten } = profileData.profile;
-          const fullName = `${Ho} ${Ten}`;
-          localStorage.setItem('userName', fullName);
+          localStorage.setItem('userName', `${Ho} ${Ten}`);
         } else {
-          // fallback nếu chưa có hồ sơ
           localStorage.setItem('userName', data.fullName || 'Người dùng');
         }
 
         alert('Đăng nhập thành công!');
-        if (profileData.hasProfile) {
+
+        // 🔥 Điều hướng dựa trên role
+        if (data.role === 'Admin') {
+          window.location.href = '/dashboard';
+        } else if (data.role === 'BenhVien') {
+          window.location.href = '/yeu-cau-hien-mau';
+        } else if (profileData.hasProfile) {
           window.location.href = '/';
         } else {
           window.location.href = '/donor-profile';

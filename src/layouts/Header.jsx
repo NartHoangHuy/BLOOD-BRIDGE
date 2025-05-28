@@ -11,16 +11,25 @@ import { logout } from '../utils/AuthUtils';
 const Header = () => {
   const navigate = useNavigate();
   const [userId, setUserId] = useState(null);
+  const [role, setRole] = useState('');
+  const [userName, setUserName] = useState('');
 
   useEffect(() => {
     const id = localStorage.getItem('userId');
+    const userRole = localStorage.getItem('role');
+    const name = localStorage.getItem('userName');
+
     setUserId(id);
+    setRole(userRole);
+    setUserName(name);
 
     const handleStorageChange = () => {
       setUserId(localStorage.getItem('userId'));
+      setRole(localStorage.getItem('role'));
+      setUserName(localStorage.getItem('userName'));
     };
-    window.addEventListener('storage', handleStorageChange);
 
+    window.addEventListener('storage', handleStorageChange);
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
@@ -29,6 +38,8 @@ const Header = () => {
   const handleLogout = () => {
     logout();
     setUserId(null);
+    setRole('');
+    setUserName('');
     navigate('/login');
   };
 
@@ -46,6 +57,21 @@ const Header = () => {
 
             {userId ? (
               <>
+                <Typography variant="body2" color="inherit">
+                  Xin chào: {userName || 'Người dùng'}
+                </Typography>
+
+                {role === 'Admin' && (
+                  <Button component={Link} to="/dashboard" color="inherit">Dashboard</Button>
+                )}
+
+                {role === 'BenhVien' && (
+                  <>
+                    <Button component={Link} to="/yeu-cau-hien-mau" color="inherit">Yêu Cầu Hiến Máu</Button>
+                    <Button component={Link} to="/donor-search" color="inherit">Tìm Người Hiến Máu</Button> {/* ✅ Thêm nút này */}
+                  </>
+                )}
+
                 <Button component={Link} to="/donor-profile" color="inherit">Xem Hồ Sơ</Button>
                 <Button onClick={handleLogout} color="inherit">Đăng Xuất</Button>
               </>

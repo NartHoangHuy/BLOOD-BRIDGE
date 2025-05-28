@@ -9,7 +9,8 @@ import HospitalProfile from '../pages/HospitalProfile';
 import UserProfile from '../pages/UserProfile';
 import Contact from '../pages/Contact';
 import About from '../pages/About';
-
+import Dashboard from '../pages/Dashboard';
+import YeuCauHienMau from '../pages/YeuCauHienMau'; // ✅ Thêm trang yêu cầu hiến máu
 
 const AppRoutes = () => (
   <Routes>
@@ -23,6 +24,8 @@ const AppRoutes = () => (
     <Route path="/contact" element={<Contact />} />
     <Route path="/about" element={<About />} />
     <Route path="/donor-profile" element={<DonorProfile />} />
+    <Route path="/dashboard" element={<Dashboard />} />
+    <Route path="/yeu-cau-hien-mau" element={<YeuCauHienMau />} /> {/* ✅ Route mới */}
   </Routes>
 );
 

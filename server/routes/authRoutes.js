@@ -1,15 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const { register, login } = require('../controllers/authController');
-const { getProfile } = require('../controllers/profileController'); // Sửa lại: Import từ profileController
+const { checkProfile } = require('../controllers/authController'); // Lấy từ authController.js
 
-// 📌 Đăng ký
+// 📌 Đăng ký tài khoản
 router.post('/register', register);
 
 // 📌 Đăng nhập
 router.post('/login', login);
 
-// 📌 Kiểm tra hồ sơ tài khoản
-router.get('/profile/:userId', getProfile); // 🚀 API kiểm tra hồ sơ
+// 📌 Kiểm tra hồ sơ tài khoản (DonorProfile)
+router.get('/profile/:userId', checkProfile);
 
 module.exports = router;
