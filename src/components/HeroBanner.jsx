@@ -4,13 +4,16 @@ import './HeroBanner.css';
 const HeroBanner = () => {
   return (
     <section className="hero-banner">
-      <div className="hero-content container">
-        <h1>Đây là HerroBanner.</h1>
-        <p>One pint of blood can save up to three lives. Be a hero today.</p>
+      <img
+        src="https://www.vietnamairport.vn/uploads/catbiairport/users/b76bf447e8e87c870032/images/1b76dcb2c2d5038b5ac4.jpg"
+        alt="Hero Banner"
+        className="hero-banner-img"
+      />
+      <div className="hero-content">
+        <h1></h1>
       </div>
     </section>
   );
 };
 
 export default HeroBanner;
-

@@ -1,23 +1,23 @@
 .about-section {
-  background-color: #FCFCFC; /* Lotion */
-  color: #070603; /* Vampire Black */
-  padding: 4rem 0;
-  text-align: center;
+  background-color: #fefefe;
+  padding: 5rem 0;
+  text-align: center; /* ✅ Căn giữa toàn bộ nội dung */
 }
 
-.about-content {
-  max-width: 800px;
+.section-title {
+  color: #a41214;
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.about-description {
+  max-width: 750px;
   margin: 0 auto;
-}
-
-.about-section h2 {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  color: #A41214; /* Animal Blood */
-}
-
-.about-section p {
-  font-size: 1.1rem;
-  line-height: 1.6;
-  color: #333;
+  font-size: 1.05rem;
+  color: #555;
+  line-height: 1.7;
+  padding: 0 1rem;
 }

@@ -23,13 +23,13 @@ const FeatureSection = () => {
   return (
     <section className="feature-section">
       <div className="container">
-        <h2 className="section-title">Đây là featureSection</h2>
+        <h2 className="section-title"></h2>
         <div className="feature-grid">
           {features.map((item, index) => (
             <div className="feature-card" key={index}>
               <div className="feature-icon">{item.icon}</div>
-              <h3>{item.title}</h3>
-              <p>{item.description}</p>
+              <h3 className="feature-title">{item.title}</h3>
+              <p className="feature-description">{item.description}</p>
             </div>
           ))}
         </div>

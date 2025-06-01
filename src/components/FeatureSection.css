@@ -1,14 +1,16 @@
-/* src/components/FeatureSection.css */
 .feature-section {
-  background-color: #f9f9f9;
-  padding: 3rem 0;
-  text-align: center;
+  padding: 5rem 0;
+  background-color: #fdfdfd; /* Nhẹ nhàng, hiện đại */
 }
 
 .section-title {
-  font-size: 2rem;
-  margin-bottom: 2rem;
-  color: #b71c1c;
+  text-align: center;
+  color: #a41214; /* Chủ đạo của BLOOD-BRIDGE */
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 3rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .feature-grid {
@@ -19,21 +21,44 @@
 }
 
 .feature-card {
-  background: white;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  width: 260px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s ease;
+  background: #ffffff;
+  border-radius: 1rem;
+  padding: 2rem 1.5rem;
+  width: 280px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
 }
 
 .feature-card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
 .feature-icon {
-  font-size: 2.5rem;
+  font-size: 2.8rem;
   margin-bottom: 1rem;
-  color: #b71c1c;
+  color: #a41214;
+}
+
+.feature-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.feature-description {
+  font-size: 0.95rem;
+  color: #666;
+  line-height: 1.4;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .feature-grid {
+    flex-direction: column;
+    align-items: center;
+  }
 }
